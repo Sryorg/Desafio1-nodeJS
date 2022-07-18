@@ -16,7 +16,7 @@ function checksExistsUserAccount(request, response, next) {
   const user = users.find(user => user.username === username);
 
   if(!user) {
-    return response.status(404).json({error: 'Mensagem de erro'});
+    return response.status(404).json({error: 'User not exists!'});
   }
 
   request.user = user;
@@ -25,13 +25,14 @@ function checksExistsUserAccount(request, response, next) {
 }
 
 app.post('/users', (request, response) => {
-  const { name, username } = request.body;
+  const { username, name } = request.body;
 
   const userAlreadyExists = users.find(
     user => user.username === username
   );
-  if(userAlreadyExists) {
-    return response.status(400).json({error: 'Mensagem de erro'});
+  
+  if (userAlreadyExists) {
+    return response.status(400).json({ error: 'User already exists' });
   }
 
   const user = {
@@ -70,16 +71,17 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
-  const { title, deadline } = request.body;
+  const { title, deadline} = request.body;
   const { id } = request.params;
   const { user } = request;
 
-  const todoInfo = user.todos.find(todo => todo.id === id);
+  const verifyTodo = user.todos.find(todo => todo.id === id );
 
-  if (todoInfo) {
-    todo.title = title;
-    todo.deadline = new Date(deadline);
-    response.json(todo);
+  if (verifyTodo) {
+    verifyTodo.title = title;
+    verifyTodo.deadline = new Date(deadline);
+  
+    return response.json(verifyTodo);
   } {
     return response.status(404).json({error: 'Mensagem de erro'})
   }
@@ -89,27 +91,28 @@ app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
   const { id } = request.params;
   const { user } = request;
 
-  const todo = user.todos.find(todo => todo.id === id);
+  const verifyTodo = user.todos.find(todo => todo.id === id );
 
-  if (todo) {
-    todo.done = true;
-    return response.json(todo);
-  } {
+  if (!verifyTodo) {
     return response.status(404).json({error: 'Mensagem de erro'});
   }
+
+  verifyTodo.done = true;
+
+  return response.json(verifyTodo);
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
   const { id } = request.params;
   const { user } = request;
 
-  const todoIndex = user.todo.findIndex(todo => todo.id === id);
+  const verifyTodo = user.todos.findIndex(todo => todo.id === id );
 
-  if (todoIndex === -1) {
+  if (verifyTodo === -1) {
     return response.status(404).json({error: 'Mensagem de erro'});
   }
 
-  user.todo.splice(todoIndex, 1);
+  user.todos.splice(verifyTodo, 1);
 
   return response.status(204).json();
 });
